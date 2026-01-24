@@ -1,5 +1,4 @@
-jobs:
-jobs:
+
 name: Deploy to Hostinger via FTP
 
 on:
@@ -7,7 +6,7 @@ on:
     branches:
       - main
 
-
+jobs:
   ftp-deploy:
     runs-on: ubuntu-latest
     steps:
@@ -39,4 +38,3 @@ on:
           server-dir: public_html/
           local-dir: frontend/dist/
           dangerous-clean-slate: false
-on:
