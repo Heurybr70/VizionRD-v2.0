@@ -8,6 +8,7 @@ on:
 jobs:
   ftp-deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -25,8 +26,27 @@ jobs:
         run: npm run build
         working-directory: frontend
 
-      - name: Copy .htaccess to dist
-        run: cp frontend/.htaccess frontend/dist/.htaccess
+      - name: Copy .htaccess to dist (if exists)
+        run: |
+          if [ -f frontend/.htaccess ]; then
+            cp frontend/.htaccess frontend/dist/.htaccess
+          else
+            echo "No frontend/.htaccess found, skipping."
+          fi
+
+      - name: List dist output (debug)
+        run: |
+          echo "== frontend/dist =="
+          ls -la frontend/dist || true
+          echo "== frontend/dist/assets =="
+          ls -la frontend/dist/assets || true
+      
+      - name: Test FTP port connectivity
+        run: |
+          echo "Testing port 21..."
+          timeout 5 bash -c "cat < /dev/null > /dev/tcp/${{ secrets.FTP_SERVER }}/21" && echo "Port 21 OK" || echo "Port 21 blocked/unreachable"
+          echo "Testing port 22..."
+          timeout 5 bash -c "cat < /dev/null > /dev/tcp/${{ secrets.FTP_SERVER }}/22" && echo "Port 22 OK" || echo "Port 22 blocked/unreachable"
 
       - name: Deploy to FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.6
@@ -34,6 +54,8 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: /public_html/dist/
+          protocol: ftps
+          port: 21
+          server-dir: /public_html/
           local-dir: frontend/dist/
-          dangerous-clean-slate: false
+          dangerous-clean-slate: true
