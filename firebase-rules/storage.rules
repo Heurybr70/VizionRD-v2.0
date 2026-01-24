@@ -1,0 +1,122 @@
+// ===========================================
+// STORAGE RULES - VizionRD
+// ===========================================
+// Copia estas reglas en Firebase Console -> Storage -> Rules
+// ===========================================
+
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // ========================================
+    // FUNCIONES AUXILIARES
+    // ========================================
+    
+    // Verifica si el usuario está autenticado
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Verifica tipos de imagen permitidos
+    function isValidImageType() {
+      return request.resource.contentType.matches('image/.*');
+    }
+    
+    // Verifica tamaño máximo (5MB)
+    function isValidSize() {
+      return request.resource.size < 5 * 1024 * 1024;
+    }
+    
+    // Validación completa para imágenes
+    function isValidImage() {
+      return isValidImageType() && isValidSize();
+    }
+    
+    // ========================================
+    // IMÁGENES DEL CARRUSEL
+    // ========================================
+    match /carousel/{imageId} {
+      // Lectura pública
+      allow read: if true;
+      
+      // Escritura solo para usuarios autenticados con validación
+      allow create: if isAuthenticated() && isValidImage();
+      allow update: if isAuthenticated() && isValidImage();
+      allow delete: if isAuthenticated();
+    }
+    
+    // Permitir subcarpetas en carousel
+    match /carousel/{allPaths=**} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidImage();
+      allow update: if isAuthenticated() && isValidImage();
+      allow delete: if isAuthenticated();
+    }
+    
+    // ========================================
+    // IMÁGENES DE PRODUCTOS
+    // ========================================
+    match /products/{imageId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidImage();
+      allow update: if isAuthenticated() && isValidImage();
+      allow delete: if isAuthenticated();
+    }
+    
+    // Permitir subcarpetas en products
+    match /products/{allPaths=**} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidImage();
+      allow update: if isAuthenticated() && isValidImage();
+      allow delete: if isAuthenticated();
+    }
+    
+    // ========================================
+    // IMÁGENES DEL SITIO (Logo, favicon, etc.)
+    // ========================================
+    match /site/{imageId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidImage();
+      allow update: if isAuthenticated() && isValidImage();
+      allow delete: if isAuthenticated();
+    }
+    
+    // Permitir subcarpetas en site
+    match /site/{allPaths=**} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidImage();
+      allow update: if isAuthenticated() && isValidImage();
+      allow delete: if isAuthenticated();
+    }
+    
+    // ========================================
+    // CARPETA GENERAL DE IMÁGENES (por si acaso)
+    // ========================================
+    match /images/{allPaths=**} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidImage();
+      allow update: if isAuthenticated() && isValidImage();
+      allow delete: if isAuthenticated();
+    }
+    
+    // ========================================
+    // CARPETA DE UPLOADS GENERAL
+    // ========================================
+    match /uploads/{allPaths=**} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidImage();
+      allow update: if isAuthenticated() && isValidImage();
+      allow delete: if isAuthenticated();
+    }
+    
+    // ========================================
+    // CONTENIDO DEL SITIO
+    // ========================================
+    match /content/{allPaths=**} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidImage();
+      allow update: if isAuthenticated() && isValidImage();
+      allow delete: if isAuthenticated();
+    }
+  }
+}

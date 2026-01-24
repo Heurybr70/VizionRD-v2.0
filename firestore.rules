@@ -1,0 +1,196 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ==================== HELPER FUNCTIONS ====================
+    
+    // Verificar si el usuario está autenticado
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    // Verificar si el usuario tiene rol admin
+    function isAdmin() {
+      return isSignedIn() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Verificar si el usuario tiene rol editor o admin
+    function isEditor() {
+      return isSignedIn() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'editor'];
+    }
+    
+    // Verificar que los campos requeridos existen
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+    
+    // Verificar que un string no está vacío
+    function isNonEmptyString(field) {
+      return field is string && field.size() > 0;
+    }
+    
+    // Verificar email válido (básico)
+    function isValidEmail(email) {
+      return email is string && email.matches('.*@.*\\..*');
+    }
+    
+    
+    // ==================== CAROUSEL SLIDES ====================
+    
+    // Carousel slides - lectura pública, escritura solo para editores
+    match /carousel_slides/{slideId} {
+      allow read: if true;
+      
+      allow create: if isEditor() && 
+                       hasRequiredFields(['order', 'imageUrl', 'active', 'createdAt']) &&
+                       request.resource.data.order is number &&
+                       isNonEmptyString(request.resource.data.imageUrl) &&
+                       request.resource.data.active is bool &&
+                       request.resource.data.createdAt == request.time;
+      
+      allow update: if isEditor() &&
+                       request.resource.data.updatedAt == request.time;
+      
+      allow delete: if isEditor();
+    }
+    
+    
+    // ==================== CAROUSEL CONFIG ====================
+    
+    // Configuración del carousel - lectura pública, escritura solo admin
+    match /carousel_config/{configId} {
+      allow read: if true;
+      
+      allow write: if isEditor() &&
+                      request.resource.data.autoplayDuration is number &&
+                      request.resource.data.transitionDuration is number &&
+                      request.resource.data.autoplayDuration >= 1000 &&
+                      request.resource.data.autoplayDuration <= 20000;
+    }
+    
+    
+    // ==================== PRODUCTS ====================
+    
+    // Productos - lectura pública, escritura solo para editores
+    match /products/{productId} {
+      allow read: if true;
+      
+      allow create: if isEditor() &&
+                       hasRequiredFields(['name', 'active', 'order', 'createdAt']) &&
+                       isNonEmptyString(request.resource.data.name) &&
+                       request.resource.data.active is bool &&
+                       request.resource.data.order is number &&
+                       request.resource.data.createdAt == request.time;
+      
+      allow update: if isEditor() &&
+                       request.resource.data.updatedAt == request.time;
+      
+      allow delete: if isEditor();
+    }
+    
+    
+    // ==================== CONTACT LEADS ====================
+    
+    // Contact leads - crear público (con validación estricta), resto solo admin
+    match /contact_leads/{leadId} {
+      // Solo admins pueden leer leads
+      allow read: if isAdmin();
+      
+      // Crear lead desde frontend (público) con validaciones estrictas
+      allow create: if hasRequiredFields(['name', 'email', 'phone', 'message', 'status', 'createdAt']) &&
+                       isNonEmptyString(request.resource.data.name) &&
+                       isValidEmail(request.resource.data.email) &&
+                       isNonEmptyString(request.resource.data.phone) &&
+                       isNonEmptyString(request.resource.data.message) &&
+                       request.resource.data.name.size() <= 100 &&
+                       request.resource.data.email.size() <= 100 &&
+                       request.resource.data.phone.size() <= 20 &&
+                       request.resource.data.message.size() <= 2000 &&
+                       request.resource.data.status == 'new' &&
+                       request.resource.data.createdAt == request.time &&
+                       // Prevenir campos extra maliciosos
+                       request.resource.data.keys().hasOnly([
+                         'name', 'email', 'phone', 'message', 'subject',
+                         'productId', 'status', 'emailSent', 'whatsappSent',
+                         'source', 'createdAt'
+                       ]);
+      
+      // Solo admins pueden actualizar (cambiar status, agregar notas)
+      allow update: if isAdmin() &&
+                       request.resource.data.updatedAt == request.time;
+      
+      // Solo admins pueden eliminar
+      allow delete: if isAdmin();
+    }
+    
+    
+    // ==================== SITE CONTENT ====================
+    
+    // Contenido editable del sitio - lectura pública, escritura solo admin
+    match /site_content/{contentId} {
+      allow read: if true;
+      
+      allow create, update: if isAdmin() &&
+                               hasRequiredFields(['type', 'content', 'updatedAt']) &&
+                               request.resource.data.updatedAt == request.time &&
+                               request.resource.data.updatedBy == request.auth.uid;
+      
+      allow delete: if isAdmin();
+    }
+    
+    
+    // ==================== USERS (ROLES) ====================
+    
+    // Usuarios y roles - solo admin puede gestionar
+    match /users/{userId} {
+      // Los usuarios pueden leer su propio documento
+      allow read: if isSignedIn() && 
+                     (request.auth.uid == userId || isAdmin());
+      
+      // Solo admins pueden crear/editar roles
+      allow create, update: if isAdmin() &&
+                               hasRequiredFields(['email', 'role']) &&
+                               isValidEmail(request.resource.data.email) &&
+                               request.resource.data.role in ['admin', 'editor', 'viewer'];
+      
+      // Solo admins pueden eliminar usuarios
+      allow delete: if isAdmin();
+    }
+    
+    
+    // ==================== AUDIT LOGS ====================
+    
+    // Logs de auditoría - solo admin puede leer, solo backend puede escribir
+    match /audit_logs/{logId} {
+      // Solo admins pueden leer logs
+      allow read: if isAdmin();
+      
+      // Solo permitir creación (no update/delete)
+      // En producción, esto debería ser solo desde Cloud Functions
+      allow create: if isAdmin() &&
+                       hasRequiredFields(['userId', 'action', 'resource', 'timestamp']) &&
+                       request.resource.data.timestamp == request.time;
+      
+      // Nunca permitir update o delete de logs
+      allow update, delete: if false;
+    }
+    
+    
+    // ==================== RATE LIMITING ====================
+    
+    // Colección interna para rate limiting (solo backend)
+    match /rate_limits/{limitId} {
+      allow read, write: if false; // Solo Cloud Functions
+    }
+    
+    
+    // ==================== DENY ALL BY DEFAULT ====================
+    
+    // Cualquier otra colección no especificada: denegar acceso
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,147 @@
+// ===========================================
+// FIRESTORE RULES - VizionRD
+// ===========================================
+// Copia estas reglas en Firebase Console -> Firestore Database -> Rules
+// ===========================================
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ========================================
+    // FUNCIONES AUXILIARES
+    // ========================================
+    
+    // Verifica si el usuario está autenticado
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Verifica si el usuario es el propietario del documento
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+    
+    // ========================================
+    // USUARIOS
+    // ========================================
+    match /users/{userId} {
+      // Usuarios pueden leer su propio documento
+      // Admins pueden leer todos los usuarios
+      allow read: if isAuthenticated();
+      
+      // Solo el propietario puede actualizar su perfil
+      // O cualquier usuario autenticado (para crear documento inicial)
+      allow create: if isAuthenticated();
+      allow update: if isOwner(userId);
+      allow delete: if false; // No se pueden eliminar usuarios desde el cliente
+    }
+    
+    // ========================================
+    // CARRUSEL
+    // ========================================
+    match /carousel_slides/{slideId} {
+      // Lectura pública (para mostrar en el frontend)
+      allow read: if true;
+      
+      // Solo usuarios autenticados pueden modificar
+      allow create, update, delete: if isAuthenticated();
+    }
+    
+    match /carousel_config/{configId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+    
+    // Colección legacy "carousel" (por si existe)
+    match /carousel/{slideId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+    
+    // ========================================
+    // PRODUCTOS
+    // ========================================
+    match /products/{productId} {
+      // Lectura pública (catálogo de productos)
+      allow read: if true;
+      
+      // Solo usuarios autenticados pueden modificar
+      allow create, update, delete: if isAuthenticated();
+    }
+    
+    // ========================================
+    // CATEGORÍAS
+    // ========================================
+    match /categories/{categoryId} {
+      // Lectura pública
+      allow read: if true;
+      
+      // Solo usuarios autenticados pueden modificar
+      allow create, update, delete: if isAuthenticated();
+    }
+    
+    // ========================================
+    // LEADS DE CONTACTO
+    // ========================================
+    match /contact_leads/{leadId} {
+      // Cualquier visitante puede crear un lead (formulario de contacto)
+      allow create: if true;
+      
+      // Solo usuarios autenticados pueden leer, actualizar o eliminar
+      allow read, update, delete: if isAuthenticated();
+    }
+    
+    // Colección legacy "leads" (por si existe)
+    match /leads/{leadId} {
+      allow create: if true;
+      allow read, update, delete: if isAuthenticated();
+    }
+    
+    // ========================================
+    // CONTENIDO DEL SITIO
+    // ========================================
+    match /site_content/{contentId} {
+      // Lectura pública (para mostrar contenido)
+      allow read: if true;
+      
+      // Solo usuarios autenticados pueden modificar
+      allow write: if isAuthenticated();
+    }
+    
+    // ========================================
+    // CONFIGURACIÓN DEL SITIO
+    // ========================================
+    match /site_settings/{settingId} {
+      // Lectura pública (configuración general)
+      allow read: if true;
+      
+      // Solo usuarios autenticados pueden modificar
+      allow write: if isAuthenticated();
+    }
+    
+    // Colección "settings" (usada por initFirebase.js)
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+    
+    // ========================================
+    // LOGS DE AUDITORÍA
+    // ========================================
+    match /audit_logs/{logId} {
+      // Solo usuarios autenticados pueden crear y leer logs
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      
+      // Logs no se pueden modificar ni eliminar
+      allow update, delete: if false;
+    }
+    
+    // ========================================
+    // REGLA CATCH-ALL (Denegación por defecto)
+    // ========================================
+    // Cualquier otra colección no especificada será denegada
+    // Esto es importante para seguridad
+  }
+}

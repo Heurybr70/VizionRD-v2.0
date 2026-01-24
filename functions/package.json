@@ -1,0 +1,30 @@
+{
+  "name": "vizionrd-functions",
+  "version": "1.0.0",
+  "description": "VizionRD Cloud Functions - WhatsApp integration, email handling",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log",
+    "build": "echo 'No build step required'",
+    "lint": "eslint ."
+  },
+  "engines": {
+    "node": "18"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.0.0",
+    "firebase-functions": "^4.6.0",
+    "axios": "^1.6.5",
+    "dotenv": "^16.4.1",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0",
+    "firebase-functions-test": "^3.1.1"
+  }
+}

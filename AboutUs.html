@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#2d608f",
+              "background-light": "#f6f7f8",
+              "background-dark": "#14191e",
+            },
+            fontFamily: {
+              display: ["Manrope", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.5rem",
+              lg: "1rem",
+              xl: "1.5rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      .glass-card {
+        background: rgba(30, 33, 36, 0.65);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .hero-gradient {
+        background: linear-gradient(
+          to bottom,
+          rgba(20, 25, 30, 0.3) 0%,
+          rgba(20, 25, 30, 0.9) 100%
+        );
+      }
+      body {
+        font-family: "Manrope", sans-serif;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 selection:bg-primary/30"
+  >
+    <!-- TopNavBar -->
+    <header
+      class="sticky top-0 z-50 w-full border-b border-white/10 bg-background-dark/80 backdrop-blur-md"
+    >
+      <div
+        class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between"
+      >
+        <div class="flex items-center gap-3 group cursor-pointer">
+          <div
+            class="text-primary group-hover:scale-110 transition-transform duration-300"
+          >
+            <svg
+              class="size-8"
+              fill="none"
+              viewbox="0 0 48 48"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M13.8261 30.5736C16.7203 29.8826 20.2244 29.4783 24 29.4783C27.7756 29.4783 31.2797 29.8826 34.1739 30.5736C36.9144 31.2278 39.9967 32.7669 41.3563 33.8352L24.8486 7.36089C24.4571 6.73303 23.5429 6.73303 23.1514 7.36089L6.64374 33.8352C8.00331 32.7669 11.0856 31.2278 13.8261 30.5736Z"
+                fill="currentColor"
+              ></path>
+              <path
+                clip-rule="evenodd"
+                d="M39.998 35.764C39.9944 35.7463 39.9875 35.7155 39.9748 35.6706C39.9436 35.5601 39.8949 35.4259 39.8346 35.2825C39.8168 35.2403 39.7989 35.1993 39.7813 35.1602C38.5103 34.2887 35.9788 33.0607 33.7095 32.5189C30.9875 31.8691 27.6413 31.4783 24 31.4783C20.3587 31.4783 17.0125 31.8691 14.2905 32.5189C12.0012 33.0654 9.44505 34.3104 8.18538 35.1832C8.17384 35.2075 8.16216 35.233 8.15052 35.2592C8.09919 35.3751 8.05721 35.4886 8.02977 35.589C8.00356 35.6848 8.00039 35.7333 8.00004 35.7388C8.00004 35.739 8 35.7393 8.00004 35.7388C8.00004 35.7641 8.0104 36.0767 8.68485 36.6314C9.34546 37.1746 10.4222 37.7531 11.9291 38.2772C14.9242 39.319 19.1919 40 24 40C28.8081 40 33.0758 39.319 36.0709 38.2772C37.5778 37.7531 38.6545 37.1746 39.3151 36.6314C39.9006 36.1499 39.9857 35.8511 39.998 35.764ZM4.95178 32.7688L21.4543 6.30267C22.6288 4.4191 25.3712 4.41909 26.5457 6.30267L43.0534 32.777C43.0709 32.8052 43.0878 32.8338 43.104 32.8629L41.3563 33.8352C43.104 32.8629 43.1038 32.8626 43.104 32.8629L43.1051 32.865L43.1065 32.8675L43.1101 32.8739L43.1199 32.8918C43.1276 32.906 43.1377 32.9246 43.1497 32.9473C43.1738 32.9925 43.2062 33.0545 43.244 33.1299C43.319 33.2792 43.4196 33.489 43.5217 33.7317C43.6901 34.1321 44 34.9311 44 35.7391C44 37.4427 43.003 38.7775 41.8558 39.7209C40.6947 40.6757 39.1354 41.4464 37.385 42.0552C33.8654 43.2794 29.133 44 24 44C18.867 44 14.1346 43.2794 10.615 42.0552C8.86463 41.4464 7.30529 40.6757 6.14419 39.7209C4.99695 38.7775 3.99999 37.4427 3.99999 35.7391C3.99999 34.8725 4.29264 34.0922 4.49321 33.6393C4.60375 33.3898 4.71348 33.1804 4.79687 33.0311C4.83898 32.9556 4.87547 32.8935 4.9035 32.8471C4.91754 32.8238 4.92954 32.8043 4.93916 32.7889L4.94662 32.777L4.95178 32.7688ZM35.9868 29.004L24 9.77997L12.0131 29.004C12.4661 28.8609 12.9179 28.7342 13.3617 28.6282C16.4281 27.8961 20.0901 27.4783 24 27.4783C27.9099 27.4783 31.5719 27.8961 34.6383 28.6282C35.082 28.7342 35.5339 28.8609 35.9868 29.004Z"
+                fill="currentColor"
+                fill-rule="evenodd"
+              ></path>
+            </svg>
+          </div>
+          <h2 class="text-white text-2xl font-black tracking-tighter uppercase">
+            Vizion<span class="text-primary">RD</span>
+          </h2>
+        </div>
+        <nav class="hidden md:flex items-center gap-10">
+          <a
+            class="text-white/70 hover:text-white text-sm font-semibold transition-colors"
+            href="#"
+            >Inicio</a
+          >
+          <a
+            class="text-white/70 hover:text-white text-sm font-semibold transition-colors"
+            href="#"
+            >Servicios</a
+          >
+          <a
+            class="text-white text-sm font-semibold border-b-2 border-primary pb-1"
+            href="#"
+            >Sobre Nosotros</a
+          >
+          <a
+            class="text-white/70 hover:text-white text-sm font-semibold transition-colors"
+            href="#"
+            >Galería</a
+          >
+          <button
+            class="bg-primary hover:bg-primary/80 text-white px-6 py-2.5 rounded-lg text-sm font-bold transition-all shadow-lg shadow-primary/20"
+          >
+            Agendar Cita
+          </button>
+        </nav>
+      </div>
+    </header>
+    <!-- HeroSection -->
+    <section
+      class="relative min-h-[70vh] flex flex-col items-center justify-center text-center px-4 overflow-hidden"
+    >
+      <div class="absolute inset-0 z-0">
+        <div class="absolute inset-0 hero-gradient z-10"></div>
+        <img
+          alt="luxurious black car in professional detailing studio"
+          class="w-full h-full object-cover"
+          data-alt="Luxurious black car in professional detailing studio with soft lighting"
+          src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdW9S2FSGEVPdBYT3kGppMuD9uuYW3IC10Bb92mAjdfJyyYXdigFQ-DLvuAA-gPGWMc2tvsUYJ2LCTi3Hj8ChzCW15phOBg1WdU5PHG0E5znNQmBcCVkJj1HtFrnnrB_w3cBGZPP5mkZ_info83_NI0ndPUPIwty1QNPPdDr4O9oaEwznWjxbfDJb-vMtRFx8jdG5yPkUGmAFfXSHSZAQ6iDwLN11PEg0bPl0GLVCyER3eXQBtpEKfA0hWWS-6WJlLTu9fqhUvvA"
+        />
+      </div>
+      <div class="relative z-20 max-w-4xl mx-auto">
+        <span
+          class="inline-block py-1 px-3 mb-6 bg-primary/20 text-primary border border-primary/30 rounded-full text-xs font-bold tracking-widest uppercase"
+          >Elite Car Care</span
+        >
+        <h1
+          class="text-white text-5xl md:text-7xl font-black mb-6 tracking-tight"
+        >
+          Pasión por la <span class="text-primary">Perfección</span>
+        </h1>
+        <p
+          class="text-slate-300 text-lg md:text-xl max-w-2xl mx-auto font-light leading-relaxed"
+        >
+          VizionRD: Elevando el estándar del detallado automotriz. No limpiamos
+          coches, preservamos obras de ingeniería.
+        </p>
+        <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+          <button
+            class="bg-primary text-white px-8 py-4 rounded-xl font-bold text-lg hover:scale-105 transition-transform shadow-2xl shadow-primary/30"
+          >
+            Nuestra Historia
+          </button>
+          <button
+            class="bg-white/10 backdrop-blur-md text-white border border-white/20 px-8 py-4 rounded-xl font-bold text-lg hover:bg-white/20 transition-all"
+          >
+            Ver Servicios
+          </button>
+        </div>
+      </div>
+    </section>
+    <!-- Core Pillars (Mission/Vision/Values) -->
+    <section class="py-24 px-6 relative z-30">
+      <div class="max-w-7xl mx-auto -mt-32">
+        <div class="grid md:grid-cols-3 gap-6">
+          <!-- Mission -->
+          <div
+            class="glass-card p-10 rounded-xl group hover:border-primary/50 transition-all duration-500"
+          >
+            <div
+              class="size-14 bg-primary/20 rounded-lg flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-white transition-all"
+            >
+              <span
+                class="material-symbols-outlined text-3xl text-primary group-hover:text-white"
+                >target</span
+              >
+            </div>
+            <h3 class="text-white text-2xl font-bold mb-4">Misión</h3>
+            <p class="text-slate-400 leading-relaxed">
+              Brindar un cuidado automotriz de élite mediante precisión técnica
+              y el uso de productos de la más alta calidad internacional.
+            </p>
+          </div>
+          <!-- Vision -->
+          <div
+            class="glass-card p-10 rounded-xl group hover:border-primary/50 transition-all duration-500"
+          >
+            <div
+              class="size-14 bg-primary/20 rounded-lg flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-white transition-all"
+            >
+              <span
+                class="material-symbols-outlined text-3xl text-primary group-hover:text-white"
+                >visibility</span
+              >
+            </div>
+            <h3 class="text-white text-2xl font-bold mb-4">Visión</h3>
+            <p class="text-slate-400 leading-relaxed">
+              Ser el referente indiscutible del detallado de lujo en la región,
+              transformando cada vehículo en una exhibición de arte y pulcritud.
+            </p>
+          </div>
+          <!-- Values -->
+          <div
+            class="glass-card p-10 rounded-xl group hover:border-primary/50 transition-all duration-500"
+          >
+            <div
+              class="size-14 bg-primary/20 rounded-lg flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-white transition-all"
+            >
+              <span
+                class="material-symbols-outlined text-3xl text-primary group-hover:text-white"
+                >shield_with_heart</span
+              >
+            </div>
+            <h3 class="text-white text-2xl font-bold mb-4">Valores</h3>
+            <p class="text-slate-400 leading-relaxed">
+              Excelencia técnica sin concesiones, integridad absoluta en cada
+              servicio e innovación constante en procesos de protección.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- Storytelling Section -->
+    <section class="py-24 px-6 bg-white/[0.02]">
+      <div class="max-w-7xl mx-auto">
+        <div class="flex flex-col lg:flex-row items-center gap-16">
+          <div class="w-full lg:w-1/2 relative">
+            <div
+              class="absolute -inset-4 bg-primary/10 rounded-xl blur-2xl"
+            ></div>
+            <div class="relative grid grid-cols-2 gap-4">
+              <div class="space-y-4">
+                <img
+                  alt="detailer working on car door"
+                  class="rounded-xl w-full h-64 object-cover grayscale hover:grayscale-0 transition-all duration-700"
+                  data-alt="Professional detailer polishing a car door with expert precision"
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUIbhukndM1U69KUqSp7GE5O_fD1j7DQdrxuBRhzsSwy-OWEdlpHH8YcvA6c9XRD1yjWlkY3HM_elGy7LwG8sYR-Gggux8kwEXZBQHUDqIk026MTZgRL8kdFxrm3ftzOLZ-_p_Br4r11dh79ji0R84ae4TJZy7AxG6l0aFSwFXcEJXegZupTQrOlO7lGdQKVQlrYJxujY5qB5pzF8VhQ64hTHqZgVwJoYpWWhEX8pFAltnrJXn2HWO1LpG24MXm8ZxrQN2Vyt4aw"
+                />
+                <img
+                  alt="close up of car wheel cleaning"
+                  class="rounded-xl w-full h-48 object-cover"
+                  data-alt="Close-up of luxury car wheel being cleaned with professional brush"
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEa5hYFEapE3QzCCA-IgcI-vWQH6Ru_096E4rXEMKBBJA-bdbOi1Qf3Ay8hY3FXli-39O0X1NoBNV1xafm5t5wvsGKJttYQLS_XYnRKEXCIkm4k4WJyv31z_p37rnsmRv9L6ZcCuCRHB3xGbs_tDK6V2zDOmlP8sNZ1PmBysbaB_ohDRAc3K3ceN1mk70f-l26unfYV7v8TvV6JD2sRnWHVK33-Zntin93bGkqjXyO7b1n-kjxcq-3Ge2kCthTTPfwUzXtMyBTtQ"
+                />
+              </div>
+              <div class="pt-12 space-y-4">
+                <img
+                  alt="automotive ceramic coating application"
+                  class="rounded-xl w-full h-48 object-cover"
+                  data-alt="Specialist applying ceramic coating on a sports car hood"
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvmZSLJUVjThFyEON4M9GV4vwnSzZq1uky0xzopg60XM7efr4zdfpEZ29xJeK-KKoMSp5BSkGhZb79pvBUJO9dryIiBRTqH_MQdqR4G49A1ZC24UPMCPTRy6gOemlul84zliUF5PI3jGufoqsf6BlNbrRhj8OKHMhMLSn1V0FFwN4u_fBZbRK6CneQ3-kCfxDXfv6CeTRDYJmekosmMAd9JONrDAy0lo780b-kC2ajJtlY-maGtgDeypSJ82o-uB9JIj6TcxRLnA"
+                />
+                <img
+                  alt="shiny car engine bay"
+                  class="rounded-xl w-full h-64 object-cover grayscale hover:grayscale-0 transition-all duration-700"
+                  data-alt="Impeccably clean and detailed engine bay of a high-end car"
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuD3VQ0fbqHcASj2_i8tZBrzM268HbRzlVyywiuNfj0qs7AU_Zr1-qBIVKrdXmUZdwMlkRiBYC_8KxcFh0mjG9osRbnfRoE_FesiPsBm69ffP7eiagSUzMc4v4vb1aXjcJcpjCsQg-sgHnkgn0HwRPqB2ojSzFQmRVQSpNwKN1oNXb1HxL15SvImZ0mKzrTPExFIZZWpzlry1iTx8dELtrLM18bCkH6AqzR503Af51WcmfO9ZyRE6HjxVZIf6iO1icp3j1V4gZL7Uw"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="w-full lg:w-1/2">
+            <h2
+              class="text-white text-4xl md:text-5xl font-black mb-8 leading-tight"
+            >
+              Nuestra Historia: <br /><span
+                class="text-primary font-normal italic"
+                >El Arte del Detallado</span
+              >
+            </h2>
+            <div class="space-y-6 text-slate-400 text-lg leading-relaxed">
+              <p>
+                En VizionRD, lo que comenzó hace 8 años como una pasión personal
+                por la estética automotriz evolucionó en un compromiso
+                inquebrantable con la calidad suprema. Entendimos que cada
+                vehículo cuenta una historia y merece ser preservado con el
+                máximo respeto.
+              </p>
+              <p>
+                Nuestro enfoque artesanal combina las mejores tecnologías de
+                pulido y protección con un ojo clínico para la perfección. No
+                usamos métodos de producción en masa; cada curva, cada costura y
+                cada micra de pintura es tratada con herramientas de precisión y
+                manos expertas.
+              </p>
+              <p>
+                Hoy, somos más que un centro de detallado; somos guardianes del
+                valor y la belleza de su inversión automotriz, utilizando
+                exclusivamente cerámicos y selladores de última generación para
+                una protección que desafía el tiempo.
+              </p>
+            </div>
+            <div
+              class="mt-12 flex flex-wrap gap-8 items-center border-t border-white/10 pt-10"
+            >
+              <div class="flex flex-col">
+                <span class="text-3xl font-black text-white">1,200+</span>
+                <span
+                  class="text-sm text-primary font-bold uppercase tracking-wider"
+                  >Vehículos</span
+                >
+              </div>
+              <div class="h-10 w-px bg-white/10"></div>
+              <div class="flex flex-col">
+                <span class="text-3xl font-black text-white">8</span>
+                <span
+                  class="text-sm text-primary font-bold uppercase tracking-wider"
+                  >Años</span
+                >
+              </div>
+              <div class="h-10 w-px bg-white/10"></div>
+              <div class="flex flex-col">
+                <span class="text-3xl font-black text-white">98%</span>
+                <span
+                  class="text-sm text-primary font-bold uppercase tracking-wider"
+                  >Satisfacción</span
+                >
+              </div>
+              <div class="h-10 w-px bg-white/10"></div>
+              <div class="flex flex-col">
+                <span class="text-3xl font-black text-white">12</span>
+                <span
+                  class="text-sm text-primary font-bold uppercase tracking-wider"
+                  >Certificaciones</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- Detailed Stats Section (Visual Accent) -->
+    <section class="py-20 bg-background-dark">
+      <div class="max-w-7xl mx-auto px-6">
+        <div
+          class="bg-primary/5 border border-primary/20 rounded-3xl p-12 flex flex-col md:flex-row items-center justify-between gap-8"
+        >
+          <div class="text-center md:text-left">
+            <h4 class="text-white text-3xl font-bold mb-2">
+              ¿Listo para elevar su vehículo?
+            </h4>
+            <p class="text-slate-400">
+              Descubra la diferencia entre un lavado común y la experiencia
+              VizionRD.
+            </p>
+          </div>
+          <button
+            class="w-full md:w-auto px-10 py-5 bg-primary text-white text-lg font-black rounded-xl hover:shadow-[0_0_30px_-5px_rgba(45,96,143,0.5)] transition-all uppercase tracking-widest"
+          >
+            Solicitar Diagnóstico
+          </button>
+        </div>
+      </div>
+    </section>
+    <!-- Footer -->
+    <footer class="bg-[#0b0e11] border-t border-white/5 py-16 px-6">
+      <div class="max-w-7xl mx-auto grid md:grid-cols-4 gap-12">
+        <div class="col-span-2">
+          <div class="flex items-center gap-2 mb-6">
+            <div class="text-primary">
+              <svg class="size-6" fill="currentColor" viewbox="0 0 48 48">
+                <path
+                  d="M13.8261 30.5736C16.7203 29.8826 20.2244 29.4783 24 29.4783C27.7756 29.4783 31.2797 29.8826 34.1739 30.5736C36.9144 31.2278 39.9967 32.7669 41.3563 33.8352L24.8486 7.36089C24.4571 6.73303 23.5429 6.73303 23.1514 7.36089L6.64374 33.8352C8.00331 32.7669 11.0856 31.2278 13.8261 30.5736Z"
+                ></path>
+              </svg>
+            </div>
+            <span
+              class="text-white text-xl font-black uppercase tracking-tighter"
+              >VizionRD</span
+            >
+          </div>
+          <p class="text-slate-500 max-w-sm mb-8">
+            Comprometidos con la excelencia en el detallado automotriz.
+            Utilizamos tecnología de punta y procesos artesanales para proteger
+            su pasión.
+          </p>
+          <div class="flex gap-4">
+            <a
+              class="size-10 bg-white/5 rounded-full flex items-center justify-center text-slate-400 hover:bg-primary hover:text-white transition-all"
+              href="#"
+            >
+              <span class="material-symbols-outlined text-lg">share</span>
+            </a>
+            <a
+              class="size-10 bg-white/5 rounded-full flex items-center justify-center text-slate-400 hover:bg-primary hover:text-white transition-all"
+              href="#"
+            >
+              <span class="material-symbols-outlined text-lg">chat</span>
+            </a>
+            <a
+              class="size-10 bg-white/5 rounded-full flex items-center justify-center text-slate-400 hover:bg-primary hover:text-white transition-all"
+              href="#"
+            >
+              <span class="material-symbols-outlined text-lg">mail</span>
+            </a>
+          </div>
+        </div>
+        <div>
+          <h5 class="text-white font-bold mb-6">Navegación</h5>
+          <ul class="space-y-4 text-slate-500 text-sm">
+            <li>
+              <a class="hover:text-primary transition-colors" href="#"
+                >Inicio</a
+              >
+            </li>
+            <li>
+              <a class="hover:text-primary transition-colors" href="#"
+                >Nuestros Servicios</a
+              >
+            </li>
+            <li>
+              <a class="hover:text-primary transition-colors" href="#"
+                >Galería de Proyectos</a
+              >
+            </li>
+            <li>
+              <a class="hover:text-primary transition-colors" href="#"
+                >Preguntas Frecuentes</a
+              >
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h5 class="text-white font-bold mb-6">Contacto</h5>
+          <ul class="space-y-4 text-slate-500 text-sm">
+            <li class="flex items-start gap-3">
+              <span class="material-symbols-outlined text-primary text-sm"
+                >location_on</span
+              >
+              <span>Av. Principal #123, <br />Santo Domingo, RD</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-primary text-sm"
+                >call</span
+              >
+              <span>+1 (809) 000-0000</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-primary text-sm"
+                >schedule</span
+              >
+              <span>Lun - Vie: 8:00am - 6:00pm</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div
+        class="max-w-7xl mx-auto mt-16 pt-8 border-t border-white/5 text-center text-slate-600 text-xs"
+      >
+        © 2024 VizionRD Automotive Care. Todos los derechos reservados.
+      </div>
+    </footer>
+  </body>
+</html>

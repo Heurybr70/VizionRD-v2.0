@@ -1,0 +1,148 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // ==================== HELPER FUNCTIONS ====================
+    
+    // Verificar si el usuario está autenticado
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    // Verificar si el usuario tiene rol admin
+    function isAdmin() {
+      return isSignedIn() && 
+             firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Verificar si el usuario tiene rol editor o admin
+    function isEditor() {
+      return isSignedIn() && 
+             firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role in ['admin', 'editor'];
+    }
+    
+    // Verificar que la imagen no excede 5MB
+    function isValidImageSize() {
+      return request.resource.size < 5 * 1024 * 1024;
+    }
+    
+    // Verificar que es un tipo de imagen válido
+    function isValidImageType() {
+      return request.resource.contentType.matches('image/.*') &&
+             request.resource.contentType in [
+               'image/jpeg',
+               'image/jpg', 
+               'image/png',
+               'image/webp',
+               'image/gif',
+               'image/svg+xml'
+             ];
+    }
+    
+    // Verificar nombre de archivo seguro (sin path traversal)
+    function isSafeFileName() {
+      return !resource.name.matches('.*\\.\\./.*') &&
+             !resource.name.matches('.*/\\.\\..*');
+    }
+    
+    
+    // ==================== CAROUSEL IMAGES ====================
+    
+    // Imágenes del carousel
+    match /carousel/{imageId} {
+      // Lectura pública
+      allow read: if true;
+      
+      // Solo editores pueden subir
+      allow write: if isEditor() && 
+                      isValidImageSize() && 
+                      isValidImageType() &&
+                      isSafeFileName();
+      
+      // Solo editores pueden eliminar
+      allow delete: if isEditor();
+    }
+    
+    // Subdirectorios dentro de carousel (por si se organizan por fecha, etc.)
+    match /carousel/{subfolder}/{imageId} {
+      allow read: if true;
+      allow write: if isEditor() && isValidImageSize() && isValidImageType();
+      allow delete: if isEditor();
+    }
+    
+    
+    // ==================== PRODUCT IMAGES ====================
+    
+    // Imágenes de productos
+    match /products/{imageId} {
+      // Lectura pública
+      allow read: if true;
+      
+      // Solo editores pueden subir
+      allow write: if isEditor() && 
+                      isValidImageSize() && 
+                      isValidImageType() &&
+                      isSafeFileName();
+      
+      // Solo editores pueden eliminar
+      allow delete: if isEditor();
+    }
+    
+    // Subdirectorios dentro de products
+    match /products/{subfolder}/{imageId} {
+      allow read: if true;
+      allow write: if isEditor() && isValidImageSize() && isValidImageType();
+      allow delete: if isEditor();
+    }
+    
+    
+    // ==================== SITE ASSETS ====================
+    
+    // Assets del sitio (logo, favicon, etc.)
+    match /site/{assetId} {
+      // Lectura pública
+      allow read: if true;
+      
+      // Solo admins pueden subir/modificar assets principales
+      allow write: if isAdmin() && 
+                      isValidImageSize() && 
+                      isValidImageType();
+      
+      // Solo admins pueden eliminar
+      allow delete: if isAdmin();
+    }
+    
+    // Subdirectorios de assets
+    match /site/{subfolder}/{assetId} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidImageSize() && isValidImageType();
+      allow delete: if isAdmin();
+    }
+    
+    
+    // ==================== TEMP UPLOADS ====================
+    
+    // Carpeta temporal para uploads (se limpia automáticamente)
+    match /temp/{userId}/{imageId} {
+      // Solo el usuario autenticado puede subir a su carpeta temp
+      allow write: if isSignedIn() && 
+                      request.auth.uid == userId &&
+                      isValidImageSize() && 
+                      isValidImageType();
+      
+      // Solo el usuario puede leer sus propios archivos temp
+      allow read: if isSignedIn() && request.auth.uid == userId;
+      
+      // Solo el usuario puede eliminar sus propios archivos temp
+      allow delete: if isSignedIn() && request.auth.uid == userId;
+    }
+    
+    
+    // ==================== DENY ALL BY DEFAULT ====================
+    
+    // Cualquier otra ruta no especificada: denegar acceso
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
