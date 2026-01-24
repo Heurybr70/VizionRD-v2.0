@@ -33,9 +33,9 @@ on:
       - name: Deploy to FTP
         uses: SamKirkland/FTP-Deploy-Action@v4
         with:
-          server: ftp://195.179.239.232
-          username: u623399260
-          password: ${{ secrets.FTP_HOSTINGER }}
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
           server-dir: public_html/
           local-dir: frontend/dist/
           dangerous-clean-slate: false
