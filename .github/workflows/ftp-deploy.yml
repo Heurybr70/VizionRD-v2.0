@@ -59,3 +59,4 @@ jobs:
           server-dir: /public_html/
           local-dir: frontend/dist/
           dangerous-clean-slate: true
+
