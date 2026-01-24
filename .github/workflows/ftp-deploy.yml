@@ -56,7 +56,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           port: 21
-          server-dir: /public_html/
+          server-dir: /domains/vizionhrd.com/public_html/
           local-dir: frontend/dist/
           dangerous-clean-slate: true
 
