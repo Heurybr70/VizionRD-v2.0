@@ -64,6 +64,9 @@ const ProductsManagementPage = () => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
+  // Query client
+  const queryClient = useQueryClient();
+
   // Fetch products - false para mostrar todos (activos e inactivos) en admin
   const { data: productsData, isLoading } = useQuery({
     queryKey: ['admin', 'products'],
