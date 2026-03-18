@@ -3,24 +3,28 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 
 import HomeScreen from '../screens/HomeScreen';
 import ProductsScreen from '../screens/ProductsScreen';
 import ProductDetailScreen from '../screens/ProductDetailScreen';
 import CartScreen from '../screens/CartScreen';
-import ServicesScreen from '../screens/ServicesScreen';
+import FavoritesScreen from '../screens/FavoritesScreen';
 import AboutScreen from '../screens/AboutScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import ContactScreen from '../screens/ContactScreen';
+import AuthScreen from '../screens/AuthScreen';
+import CheckoutScreen from '../screens/CheckoutScreen';
+import RequestsScreen from '../screens/RequestsScreen';
 
 import { useTheme } from '../context/ThemeContext';
 import { useCart } from '../context/CartContext';
+import { useFavorites } from '../context/FavoritesContext';
 import COLORS from '@shared/constants/colors';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
-// ── Store stack: Products → ProductDetail → About ──────────────────────────
 const StoreStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="Products" component={ProductsScreen} />
@@ -29,26 +33,40 @@ const StoreStack = () => (
   </Stack.Navigator>
 );
 
-// ── Badge del carrito ────────────────────────────────────────────────────────
-const CartTabIcon = ({ color, focused }) => {
-  const { itemCount } = useCart();
+const CountBadge = ({ value }) => {
+  if (!value) {
+    return null;
+  }
+
   return (
-    <View style={{ width: 24, height: 24 }}>
-      <Ionicons
-        name={focused ? 'cart' : 'cart-outline'}
-        size={24}
-        color={color}
-      />
-      {itemCount > 0 && (
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>{itemCount > 9 ? '9+' : itemCount}</Text>
-        </View>
-      )}
+    <View style={styles.badge}>
+      <Text style={styles.badgeText}>{value > 9 ? '9+' : value}</Text>
     </View>
   );
 };
 
-// ── Tab Navigator principal ──────────────────────────────────────────────────
+const CartTabIcon = ({ color, focused }) => {
+  const { itemCount } = useCart();
+
+  return (
+    <View style={styles.iconWrap}>
+      <Ionicons name={focused ? 'cart' : 'cart-outline'} size={24} color={color} />
+      <CountBadge value={itemCount} />
+    </View>
+  );
+};
+
+const FavoritesTabIcon = ({ color, focused }) => {
+  const { favoriteCount } = useFavorites();
+
+  return (
+    <View style={styles.iconWrap}>
+      <Ionicons name={focused ? 'heart' : 'heart-outline'} size={24} color={color} />
+      <CountBadge value={favoriteCount} />
+    </View>
+  );
+};
+
 const AppTabs = () => {
   const { isDark } = useTheme();
 
@@ -56,21 +74,32 @@ const AppTabs = () => {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
+        tabBarHideOnKeyboard: true,
         tabBarActiveTintColor: COLORS.primary,
         tabBarInactiveTintColor: isDark ? COLORS.textMuted : COLORS.textSecondary,
         tabBarStyle: {
-          backgroundColor: isDark ? COLORS.backgroundDark : COLORS.surface,
-          borderTopColor: isDark ? COLORS.borderDark : COLORS.border,
-          borderTopWidth: 1,
-          paddingBottom: 10,
-          paddingTop: 6,
-          height: 65,
+          height: 78,
+          paddingBottom: 12,
+          paddingTop: 10,
+          backgroundColor: isDark ? 'rgba(15, 23, 42, 0.98)' : 'rgba(255,255,255,0.98)',
+          borderTopWidth: 0,
+          shadowColor: '#020617',
+          shadowOpacity: isDark ? 0.26 : 0.08,
+          shadowOffset: { width: 0, height: -8 },
+          shadowRadius: 18,
+          elevation: 14,
+        },
+        tabBarItemStyle: {
+          paddingVertical: 2,
         },
         tabBarLabelStyle: {
           fontSize: 10,
-          fontWeight: '600',
+          fontWeight: '800',
           textTransform: 'uppercase',
-          letterSpacing: 0.5,
+          letterSpacing: 0.7,
+        },
+        sceneStyle: {
+          backgroundColor: isDark ? COLORS.backgroundDark : COLORS.backgroundLight,
         },
       }}
     >
@@ -93,19 +122,17 @@ const AppTabs = () => {
         }}
       />
       <Tab.Screen
+        name="Favoritos"
+        component={FavoritesScreen}
+        options={{
+          tabBarIcon: (props) => <FavoritesTabIcon {...props} />,
+        }}
+      />
+      <Tab.Screen
         name="Carrito"
         component={CartScreen}
         options={{
           tabBarIcon: (props) => <CartTabIcon {...props} />,
-        }}
-      />
-      <Tab.Screen
-        name="Servicios"
-        component={ServicesScreen}
-        options={{
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'car-sport' : 'car-sport-outline'} size={24} color={color} />
-          ),
         }}
       />
       <Tab.Screen
@@ -121,31 +148,40 @@ const AppTabs = () => {
   );
 };
 
-// ── Root Navigator ───────────────────────────────────────────────────────────
 const AppNavigator = () => (
   <NavigationContainer>
-    <AppTabs />
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="MainTabs" component={AppTabs} />
+      <Stack.Screen name="Contact" component={ContactScreen} />
+      <Stack.Screen name="Auth" component={AuthScreen} />
+      <Stack.Screen name="Checkout" component={CheckoutScreen} />
+      <Stack.Screen name="Requests" component={RequestsScreen} />
+    </Stack.Navigator>
   </NavigationContainer>
 );
 
 export default AppNavigator;
 
 const styles = StyleSheet.create({
+  iconWrap: {
+    width: 26,
+    height: 26,
+  },
   badge: {
     position: 'absolute',
     top: -4,
-    right: -6,
-    backgroundColor: '#ef4444',
-    borderRadius: 8,
+    right: -7,
     minWidth: 16,
     height: 16,
+    paddingHorizontal: 3,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 2,
+    backgroundColor: COLORS.error,
   },
   badgeText: {
     color: '#fff',
     fontSize: 8,
-    fontWeight: 'bold',
+    fontWeight: '800',
   },
 });

@@ -1,190 +1,372 @@
-/**
- * CartScreen — basado en 5.html
- * Lista de ítems + Resumen del pedido
- */
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity,
-  Image, StyleSheet,
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import Toast from 'react-native-toast-message';
 
 import { useTheme } from '../context/ThemeContext';
 import { useCart } from '../context/CartContext';
+import AnimatedEntrance from '../components/common/AnimatedEntrance';
+import AppHeader from '../components/common/AppHeader';
+import ScreenState from '../components/common/ScreenState';
 import COLORS from '@shared/constants/colors';
 import { formatPrice } from '@shared/utils/formatters';
 
 export default function CartScreen() {
-  const { isDark } = useTheme();
   const navigation = useNavigation();
+  const { isDark } = useTheme();
   const { items, itemCount, subtotal, itbis, total, updateQuantity, removeItem, clearCart } = useCart();
-  const s = styles(isDark);
+  const styles = useMemo(() => createStyles(isDark), [isDark]);
+
+  const handleBack = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
+
+    navigation.navigate('Tienda');
+  };
 
   const handleCheckout = () => {
-    Toast.show({ type: 'info', text1: 'Próximamente', text2: 'La pasarela de pago está en desarrollo.' });
+    navigation.navigate('Checkout');
   };
 
   return (
-    <SafeAreaView style={s.safe} edges={['top']}>
-      {/* Header */}
-      <View style={s.header}>
-        <TouchableOpacity style={s.iconBtn} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color={isDark ? COLORS.textLight : COLORS.textPrimary} />
-        </TouchableOpacity>
-        <Text style={s.headerTitle}>Mi Carrito</Text>
-        {itemCount > 0 ? (
-          <TouchableOpacity style={s.iconBtn} onPress={clearCart}>
-            <Ionicons name="trash-outline" size={22} color={isDark ? COLORS.textLight : COLORS.textPrimary} />
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <AppHeader
+        isDark={isDark}
+        title="Mi carrito"
+        subtitle={itemCount > 0 ? `${itemCount} item(s)` : 'Listo para tu pedido'}
+        onLeftPress={handleBack}
+        rightContent={itemCount > 0 ? (
+          <TouchableOpacity style={styles.headerAction} onPress={clearCart} activeOpacity={0.9}>
+            <Ionicons name="trash-outline" size={20} color={isDark ? COLORS.textLight : COLORS.textPrimary} />
           </TouchableOpacity>
-        ) : <View style={s.iconBtn} />}
-      </View>
+        ) : null}
+      />
 
       {items.length === 0 ? (
-        <View style={s.empty}>
-          <Ionicons name="cart-outline" size={64} color={COLORS.textMuted} />
-          <Text style={s.emptyTitle}>Tu carrito está vacío</Text>
-          <Text style={s.emptySubtitle}>Explora nuestros productos</Text>
-          <TouchableOpacity style={s.shopBtn} onPress={() => navigation.navigate('Tienda')}>
-            <Text style={s.shopBtnText}>Ver Productos</Text>
-          </TouchableOpacity>
+        <View style={styles.emptyWrap}>
+          <AnimatedEntrance delay={70}>
+            <ScreenState
+              isDark={isDark}
+              icon="cart-outline"
+              title="Tu carrito esta vacio"
+              description="Explora nuestros productos, agrega tus favoritos y arma un pedido en pocos toques."
+              actionLabel="Ver productos"
+              onAction={() => navigation.navigate('Tienda')}
+            />
+          </AnimatedEntrance>
         </View>
       ) : (
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {/* Items */}
-          <View style={s.itemsList}>
-            {items.map(item => (
-              <View key={item.id} style={s.cartItem}>
-                <View style={s.itemImageWrap}>
-                  {item.thumbnail || item.image ? (
-                    <Image source={{ uri: item.thumbnail || item.image }} style={s.itemImage} />
-                  ) : (
-                    <View style={[s.itemImage, { backgroundColor: isDark ? '#1e293b' : '#e2e8f0' }]} />
-                  )}
-                </View>
-                <View style={s.itemInfo}>
-                  <Text style={s.itemName} numberOfLines={2}>{item.name}</Text>
-                  <Text style={s.itemCategory}>{item.category || ''}</Text>
-                  <View style={s.itemBottom}>
-                    <Text style={s.itemPrice}>{formatPrice(item.price)}</Text>
-                    <View style={s.qtyRow}>
-                      <TouchableOpacity
-                        style={s.qtyBtn}
-                        onPress={() => updateQuantity(item.id, item.quantity - 1)}
-                      >
-                        <Text style={s.qtyBtnText}>-</Text>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+          <AnimatedEntrance delay={40} style={styles.summaryBanner}>
+            <View style={styles.summaryBannerIcon}>
+              <Ionicons name="bag-check-outline" size={20} color={COLORS.primary} />
+            </View>
+            <View style={styles.summaryBannerCopy}>
+              <Text style={styles.summaryBannerTitle}>Tu pedido va tomando forma</Text>
+              <Text style={styles.summaryBannerText}>
+                Ajusta cantidades y envia la solicitud cuando estes listo.
+              </Text>
+            </View>
+          </AnimatedEntrance>
+
+          <View style={styles.itemsList}>
+            {items.map((item, index) => (
+              <AnimatedEntrance key={item.id} delay={70 + index * 35}>
+                <View style={styles.itemCard}>
+                  <View style={styles.itemImageWrap}>
+                    {item.thumbnail || item.image ? (
+                      <Image source={{ uri: item.thumbnail || item.image }} style={styles.itemImage} />
+                    ) : (
+                      <View style={[styles.itemImage, styles.itemPlaceholder]} />
+                    )}
+                  </View>
+
+                  <View style={styles.itemInfo}>
+                    <View style={styles.itemTopRow}>
+                      <View style={styles.itemCopy}>
+                        <Text style={styles.itemCategory}>{item.category || 'general'}</Text>
+                        <Text style={styles.itemName} numberOfLines={2}>{item.name}</Text>
+                      </View>
+
+                      <TouchableOpacity style={styles.removeButton} onPress={() => removeItem(item.id)}>
+                        <Ionicons name="close" size={18} color={COLORS.textMuted} />
                       </TouchableOpacity>
-                      <Text style={s.qtyValue}>{item.quantity}</Text>
-                      <TouchableOpacity
-                        style={s.qtyBtn}
-                        onPress={() => updateQuantity(item.id, item.quantity + 1)}
-                      >
-                        <Text style={s.qtyBtnText}>+</Text>
-                      </TouchableOpacity>
+                    </View>
+
+                    <View style={styles.itemFooter}>
+                      <Text style={styles.itemPrice}>{formatPrice(item.price)}</Text>
+                      <View style={styles.quantityWrap}>
+                        <TouchableOpacity
+                          style={styles.quantityButton}
+                          onPress={() => updateQuantity(item.id, item.quantity - 1)}
+                        >
+                          <Ionicons name="remove" size={15} color={isDark ? COLORS.textLight : COLORS.textPrimary} />
+                        </TouchableOpacity>
+                        <Text style={styles.quantityValue}>{item.quantity}</Text>
+                        <TouchableOpacity
+                          style={styles.quantityButton}
+                          onPress={() => updateQuantity(item.id, item.quantity + 1)}
+                        >
+                          <Ionicons name="add" size={15} color={isDark ? COLORS.textLight : COLORS.textPrimary} />
+                        </TouchableOpacity>
+                      </View>
                     </View>
                   </View>
                 </View>
-                <TouchableOpacity onPress={() => removeItem(item.id)} style={{ padding: 4 }}>
-                  <Ionicons name="close" size={18} color={COLORS.textMuted} />
-                </TouchableOpacity>
-              </View>
+              </AnimatedEntrance>
             ))}
           </View>
 
-          {/* Order Summary */}
-          <View style={s.summary}>
-            <Text style={s.summaryTitle}>Resumen del Pedido</Text>
+          <AnimatedEntrance delay={140} style={styles.summary}>
+            <Text style={styles.summaryTitle}>Resumen del pedido</Text>
 
-            <View style={s.summaryRow}>
-              <Text style={s.summaryLabel}>Subtotal</Text>
-              <Text style={s.summaryValue}>{formatPrice(subtotal)}</Text>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Subtotal</Text>
+              <Text style={styles.summaryValue}>{formatPrice(subtotal)}</Text>
             </View>
-            <View style={s.summaryRow}>
-              <Text style={s.summaryLabel}>Envío</Text>
-              <Text style={[s.summaryValue, { color: COLORS.success, fontSize: 11, textTransform: 'uppercase', letterSpacing: 1 }]}>Gratis</Text>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>ITBIS (18%)</Text>
+              <Text style={styles.summaryValue}>{formatPrice(itbis)}</Text>
             </View>
-            <View style={s.summaryRow}>
-              <Text style={s.summaryLabel}>Impuestos (ITBIS 18%)</Text>
-              <Text style={s.summaryValue}>{formatPrice(itbis)}</Text>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Envio</Text>
+              <Text style={[styles.summaryValue, styles.summarySuccess]}>A coordinar</Text>
             </View>
-
-            <View style={s.divider} />
-
-            <View style={s.summaryRow}>
-              <Text style={s.totalLabel}>Total</Text>
-              <Text style={s.totalValue}>{formatPrice(total)}</Text>
+            <View style={styles.divider} />
+            <View style={styles.summaryRow}>
+              <Text style={styles.totalLabel}>Total estimado</Text>
+              <Text style={styles.totalValue}>{formatPrice(total)}</Text>
             </View>
 
-            <TouchableOpacity style={s.checkoutBtn} onPress={handleCheckout}>
-              <Text style={s.checkoutText}>Finalizar Compra</Text>
+            <TouchableOpacity style={styles.checkoutButton} onPress={handleCheckout} activeOpacity={0.92}>
+              <Text style={styles.checkoutText}>Enviar pedido</Text>
               <Ionicons name="chevron-forward" size={18} color="#fff" />
             </TouchableOpacity>
-          </View>
-
-          <View style={{ height: 32 }} />
+          </AnimatedEntrance>
         </ScrollView>
       )}
     </SafeAreaView>
   );
 }
 
-const styles = (isDark) => StyleSheet.create({
-  safe: { flex: 1, backgroundColor: isDark ? COLORS.backgroundDark : COLORS.backgroundLight },
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 12, paddingVertical: 10,
-    backgroundColor: isDark ? COLORS.backgroundDark : COLORS.surface,
-    borderBottomWidth: 1, borderBottomColor: isDark ? COLORS.borderDark : COLORS.border,
-  },
-  headerTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: 'bold', color: isDark ? COLORS.textLight : COLORS.textPrimary },
-  iconBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, paddingHorizontal: 32 },
-  emptyTitle: { fontSize: 20, fontWeight: 'bold', color: isDark ? COLORS.textLight : COLORS.textPrimary },
-  emptySubtitle: { fontSize: 13, color: COLORS.textMuted },
-  shopBtn: { marginTop: 8, backgroundColor: COLORS.primary, paddingHorizontal: 32, paddingVertical: 14, borderRadius: 12 },
-  shopBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
-  itemsList: { padding: 16, gap: 4 },
-  cartItem: {
-    flexDirection: 'row', gap: 12, padding: 12,
-    backgroundColor: isDark ? '#1a2235' : COLORS.surface,
-    borderRadius: 14, borderWidth: 1,
-    borderColor: isDark ? COLORS.borderDark : COLORS.border,
-    marginBottom: 8, alignItems: 'flex-start',
-  },
-  itemImageWrap: { width: 76, height: 76, borderRadius: 10, overflow: 'hidden' },
-  itemImage: { width: '100%', height: '100%', resizeMode: 'cover' },
-  itemInfo: { flex: 1, gap: 3 },
-  itemName: { fontSize: 14, fontWeight: '600', color: isDark ? COLORS.textLight : COLORS.textPrimary, lineHeight: 19 },
-  itemCategory: { fontSize: 11, color: COLORS.textMuted },
-  itemBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 },
-  itemPrice: { fontSize: 15, fontWeight: 'bold', color: COLORS.primary },
-  qtyRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: isDark ? '#0d1525' : '#f1f5f9',
-    paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8,
-  },
-  qtyBtn: { width: 22, height: 22, alignItems: 'center', justifyContent: 'center', borderRadius: 6, backgroundColor: isDark ? '#1e293b' : '#fff' },
-  qtyBtnText: { fontWeight: 'bold', color: isDark ? COLORS.textLight : COLORS.textSecondary, fontSize: 14 },
-  qtyValue: { fontWeight: 'bold', fontSize: 13, minWidth: 16, textAlign: 'center', color: isDark ? COLORS.textLight : COLORS.textPrimary },
-  summary: {
-    margin: 16, padding: 20,
-    backgroundColor: isDark ? '#0d1525' : '#f8fafc',
-    borderRadius: 16, borderTopWidth: 1, borderTopColor: isDark ? COLORS.borderDark : COLORS.border,
-    gap: 12,
-  },
-  summaryTitle: { fontSize: 17, fontWeight: 'bold', color: isDark ? COLORS.textLight : COLORS.textPrimary },
-  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  summaryLabel: { fontSize: 13, color: isDark ? COLORS.textMuted : COLORS.textSecondary },
-  summaryValue: { fontSize: 14, fontWeight: '500', color: isDark ? COLORS.textLight : COLORS.textPrimary },
-  divider: { height: 1, backgroundColor: isDark ? COLORS.borderDark : COLORS.border },
-  totalLabel: { fontSize: 17, fontWeight: 'bold', color: isDark ? COLORS.textLight : COLORS.textPrimary },
-  totalValue: { fontSize: 20, fontWeight: 'bold', color: COLORS.primary },
-  checkoutBtn: {
-    marginTop: 8, backgroundColor: COLORS.primary, padding: 16, borderRadius: 14,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
-    shadowColor: COLORS.primary, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4,
-  },
-  checkoutText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
-});
+const createStyles = (isDark) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: isDark ? COLORS.backgroundDark : COLORS.backgroundLight,
+    },
+    headerAction: {
+      width: 42,
+      height: 42,
+      borderRadius: 14,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : COLORS.backgroundLight,
+    },
+    emptyWrap: {
+      flex: 1,
+      justifyContent: 'center',
+      paddingBottom: 24,
+    },
+    content: {
+      paddingHorizontal: 16,
+      paddingTop: 10,
+      paddingBottom: 36,
+      gap: 14,
+    },
+    summaryBanner: {
+      flexDirection: 'row',
+      gap: 14,
+      padding: 18,
+      borderRadius: 26,
+      borderWidth: 1,
+      borderColor: isDark ? COLORS.borderDark : COLORS.border,
+      backgroundColor: isDark ? 'rgba(26, 34, 53, 0.92)' : 'rgba(255,255,255,0.96)',
+    },
+    summaryBannerIcon: {
+      width: 46,
+      height: 46,
+      borderRadius: 15,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: isDark ? 'rgba(37, 99, 235, 0.18)' : 'rgba(37, 99, 235, 0.1)',
+    },
+    summaryBannerCopy: {
+      flex: 1,
+      gap: 4,
+    },
+    summaryBannerTitle: {
+      fontSize: 18,
+      fontWeight: '900',
+      color: isDark ? COLORS.textLight : COLORS.textPrimary,
+    },
+    summaryBannerText: {
+      fontSize: 13,
+      lineHeight: 20,
+      color: isDark ? COLORS.textMuted : COLORS.textSecondary,
+    },
+    itemsList: {
+      gap: 12,
+    },
+    itemCard: {
+      flexDirection: 'row',
+      gap: 14,
+      padding: 16,
+      borderRadius: 26,
+      borderWidth: 1,
+      borderColor: isDark ? COLORS.borderDark : COLORS.border,
+      backgroundColor: isDark ? 'rgba(26, 34, 53, 0.94)' : 'rgba(255,255,255,0.98)',
+    },
+    itemImageWrap: {
+      width: 90,
+      height: 90,
+      borderRadius: 20,
+      overflow: 'hidden',
+      backgroundColor: isDark ? '#0f172a' : '#eef2ff',
+    },
+    itemImage: {
+      width: '100%',
+      height: '100%',
+      resizeMode: 'cover',
+    },
+    itemPlaceholder: {
+      backgroundColor: isDark ? '#1e293b' : '#e2e8f0',
+    },
+    itemInfo: {
+      flex: 1,
+      justifyContent: 'space-between',
+      gap: 12,
+    },
+    itemTopRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 12,
+    },
+    itemCopy: {
+      flex: 1,
+      gap: 6,
+    },
+    itemCategory: {
+      fontSize: 10,
+      fontWeight: '800',
+      letterSpacing: 0.8,
+      textTransform: 'uppercase',
+      color: COLORS.primary,
+    },
+    itemName: {
+      fontSize: 15,
+      lineHeight: 21,
+      fontWeight: '800',
+      color: isDark ? COLORS.textLight : COLORS.textPrimary,
+    },
+    removeButton: {
+      width: 32,
+      height: 32,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: isDark ? '#111827' : COLORS.backgroundLight,
+    },
+    itemFooter: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 12,
+    },
+    itemPrice: {
+      fontSize: 16,
+      fontWeight: '900',
+      color: COLORS.primary,
+    },
+    quantityWrap: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 8,
+      paddingVertical: 6,
+      borderRadius: 16,
+      backgroundColor: isDark ? '#111827' : COLORS.backgroundLight,
+    },
+    quantityButton: {
+      width: 28,
+      height: 28,
+      borderRadius: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#fff',
+    },
+    quantityValue: {
+      minWidth: 22,
+      textAlign: 'center',
+      fontWeight: '900',
+      color: isDark ? COLORS.textLight : COLORS.textPrimary,
+    },
+    summary: {
+      padding: 22,
+      gap: 12,
+      borderRadius: 30,
+      borderWidth: 1,
+      borderColor: isDark ? COLORS.borderDark : COLORS.border,
+      backgroundColor: isDark ? 'rgba(26, 34, 53, 0.94)' : 'rgba(255,255,255,0.98)',
+    },
+    summaryTitle: {
+      fontSize: 21,
+      fontWeight: '900',
+      color: isDark ? COLORS.textLight : COLORS.textPrimary,
+    },
+    summaryRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 12,
+    },
+    summaryLabel: {
+      color: isDark ? COLORS.textMuted : COLORS.textSecondary,
+    },
+    summaryValue: {
+      color: isDark ? COLORS.textLight : COLORS.textPrimary,
+      fontWeight: '700',
+    },
+    summarySuccess: {
+      color: COLORS.success,
+    },
+    divider: {
+      height: 1,
+      backgroundColor: isDark ? COLORS.borderDark : COLORS.border,
+    },
+    totalLabel: {
+      fontSize: 18,
+      fontWeight: '900',
+      color: isDark ? COLORS.textLight : COLORS.textPrimary,
+    },
+    totalValue: {
+      fontSize: 21,
+      fontWeight: '900',
+      color: COLORS.primary,
+    },
+    checkoutButton: {
+      marginTop: 8,
+      minHeight: 54,
+      borderRadius: 18,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      backgroundColor: COLORS.primary,
+    },
+    checkoutText: {
+      color: '#fff',
+      fontWeight: '800',
+      fontSize: 15,
+    },
+  });

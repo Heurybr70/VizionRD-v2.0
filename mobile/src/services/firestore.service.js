@@ -1,5 +1,5 @@
 /**
- * Firestore service mobile — usa el servicio compartido con la instancia `db` de esta plataforma
+ * Firestore service mobile â€” usa el servicio compartido con la instancia `db` de esta plataforma
  */
 import { db } from './firebase';
 import { createFirestoreService } from '@shared/services/firestore.service';
@@ -18,6 +18,7 @@ export const {
   updateProduct,
   deleteProduct,
   addContactLead,
+  getUserContactLeads,
   getSiteSettings,
   getSiteContent,
   getCarouselSlides,

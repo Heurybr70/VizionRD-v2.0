@@ -1,12 +1,17 @@
 /**
- * Firebase config para React Native/Expo
- * Las variables de entorno vienen de .env via react-native-dotenv
+ * Firebase config para React Native/Expo Go
+ * Usa AsyncStorage para mantener la sesiÃ³n entre reinicios.
  */
-import { initializeApp, getApps } from 'firebase/app';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import {
+  initializeAuth,
+  getAuth,
+  getReactNativePersistence,
+} from 'firebase/auth/cordova';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
-import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getFunctions } from 'firebase/functions';
 import {
   FIREBASE_API_KEY,
   FIREBASE_AUTH_DOMAIN,
@@ -25,17 +30,20 @@ const firebaseConfig = {
   appId: FIREBASE_APP_ID,
 };
 
-// Evitar inicializar dos veces en hot reload
-const app = getApps().length === 0
-  ? initializeApp(firebaseConfig)
-  : getApps()[0];
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// Auth con persistencia en AsyncStorage
-export const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(AsyncStorage),
-});
+let auth;
+try {
+  auth = initializeAuth(app, {
+    persistence: getReactNativePersistence(AsyncStorage),
+  });
+} catch (error) {
+  auth = getAuth(app);
+}
 
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+export const functions = getFunctions(app);
+export { app, auth };
 
 export default app;

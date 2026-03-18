@@ -24,6 +24,15 @@ import {
  */
 
 export const createFirestoreService = (db) => {
+  const sortByCreatedAtDesc = (items = []) => {
+    items.sort((a, b) => {
+      const dateA = a.createdAt?.toDate?.() || a.createdAt || new Date(0);
+      const dateB = b.createdAt?.toDate?.() || b.createdAt || new Date(0);
+      return dateB - dateA;
+    });
+    return items;
+  };
+
   const getDocument = async (collectionName, docId) => {
     try {
       const docRef = doc(db, collectionName, docId);
@@ -87,11 +96,7 @@ export const createFirestoreService = (db) => {
       if (activeOnly) {
         result.data = result.data.filter(p => p.active === true);
       }
-      result.data.sort((a, b) => {
-        const dateA = a.createdAt?.toDate?.() || a.createdAt || new Date(0);
-        const dateB = b.createdAt?.toDate?.() || b.createdAt || new Date(0);
-        return dateB - dateA;
-      });
+      sortByCreatedAtDesc(result.data);
     }
     return result;
   };
@@ -111,6 +116,14 @@ export const createFirestoreService = (db) => {
       source: data.source || 'contact_form',
     });
 
+  const getUserContactLeads = async (userId) => {
+    const result = await getCollection('contact_leads', [where('userId', '==', userId)]);
+    if (result.success && result.data) {
+      sortByCreatedAtDesc(result.data);
+    }
+    return result;
+  };
+
   // ---- Site Settings ----
   const getSiteSettings = () => getDocument('site_settings', 'main');
   const getSiteContent = (contentId) => getDocument('site_content', contentId);
@@ -127,6 +140,6 @@ export const createFirestoreService = (db) => {
   return {
     getDocument, getCollection, addDocument, updateDocument, deleteDocument,
     getProducts, getProduct, addProduct, updateProduct, deleteProduct,
-    addContactLead, getSiteSettings, getSiteContent, getCarouselSlides,
+    addContactLead, getUserContactLeads, getSiteSettings, getSiteContent, getCarouselSlides,
   };
 };

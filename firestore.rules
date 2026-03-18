@@ -96,7 +96,10 @@ service cloud.firestore {
     // Contact leads - crear público (con validación estricta), resto solo admin
     match /contact_leads/{leadId} {
       // Solo admins pueden leer leads
-      allow read: if isAdmin();
+      allow read: if isAdmin() ||
+                     (isSignedIn() &&
+                      resource.data.userId is string &&
+                      resource.data.userId == request.auth.uid);
       
       // Crear lead desde frontend (público) con validaciones estrictas
       allow create: if hasRequiredFields(['name', 'email', 'phone', 'message', 'status', 'createdAt']) &&
@@ -110,11 +113,35 @@ service cloud.firestore {
                        request.resource.data.message.size() <= 2000 &&
                        request.resource.data.status == 'new' &&
                        request.resource.data.createdAt == request.time &&
+                       (!request.resource.data.keys().hasAny(['userId']) ||
+                         (isSignedIn() &&
+                          request.resource.data.userId is string &&
+                          request.resource.data.userId == request.auth.uid)) &&
+                       (!request.resource.data.keys().hasAny(['requestType']) ||
+                         request.resource.data.requestType in ['contact', 'product', 'service', 'checkout']) &&
+                       (!request.resource.data.keys().hasAny(['referenceName']) ||
+                         (request.resource.data.referenceName is string &&
+                          request.resource.data.referenceName.size() <= 120)) &&
+                       (!request.resource.data.keys().hasAny(['productInterest']) ||
+                         (request.resource.data.productInterest is string &&
+                          request.resource.data.productInterest.size() <= 200)) &&
+                       (!request.resource.data.keys().hasAny(['userAgent']) ||
+                         (request.resource.data.userAgent is string &&
+                          request.resource.data.userAgent.size() <= 500)) &&
+                       (!request.resource.data.keys().hasAny(['language']) ||
+                         (request.resource.data.language is string &&
+                          request.resource.data.language.size() <= 20)) &&
+                       (!request.resource.data.keys().hasAny(['itemCount']) ||
+                         request.resource.data.itemCount is number) &&
+                       (!request.resource.data.keys().hasAny(['total']) ||
+                         request.resource.data.total is number) &&
                        // Prevenir campos extra maliciosos
                        request.resource.data.keys().hasOnly([
                          'name', 'email', 'phone', 'message', 'subject',
                          'productId', 'status', 'emailSent', 'whatsappSent',
-                         'source', 'createdAt'
+                         'source', 'createdAt', 'userId', 'requestType',
+                         'referenceName', 'itemCount', 'total', 'productInterest',
+                         'userAgent', 'language'
                        ]);
       
       // Solo admins pueden actualizar (cambiar status, agregar notas)

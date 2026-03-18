@@ -9,6 +9,7 @@ import AppNavigator from './src/navigation/AppNavigator';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { CartProvider } from './src/context/CartContext';
 import { AuthProvider } from './src/context/AuthContext';
+import { FavoritesProvider } from './src/context/FavoritesContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,11 +33,13 @@ export default function App() {
         <QueryClientProvider client={queryClient}>
           <ThemeProvider>
             <AuthProvider>
-              <CartProvider>
-                <ThemedStatusBar />
-                <AppNavigator />
-                <Toast />
-              </CartProvider>
+              <FavoritesProvider>
+                <CartProvider>
+                  <ThemedStatusBar />
+                  <AppNavigator />
+                  <Toast />
+                </CartProvider>
+              </FavoritesProvider>
             </AuthProvider>
           </ThemeProvider>
         </QueryClientProvider>
