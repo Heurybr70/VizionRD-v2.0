@@ -68,7 +68,7 @@ const ProductsManagementPage = () => {
   const queryClient = useQueryClient();
 
   // Fetch products - false para mostrar todos (activos e inactivos) en admin
-  const { data: productsData, isLoading } = useQuery({
+  const { data: productsData, isLoading, error } = useQuery({
     queryKey: ['admin', 'products'],
     queryFn: () => getProducts(false),
   });
@@ -124,33 +124,51 @@ const ProductsManagementPage = () => {
     mutationFn: async (data) => {
       let imageUrl = '';
       let thumbnailUrl = '';
-      
-      if (selectedFile) {
-        setIsUploading(true);
-        const uploadResult = await uploadImage(
-          selectedFile, 
-          'products', 
-          (progress) => setUploadProgress(progress)
-        );
-        
-        if (!uploadResult.success || !uploadResult.data?.url) {
-          throw new Error(uploadResult.error || 'Error al subir la imagen');
+
+      try {
+        if (selectedFile) {
+          setIsUploading(true);
+          const uploadResult = await uploadImage(
+            selectedFile,
+            'products',
+            (progress) => setUploadProgress(progress)
+          );
+
+          if (!uploadResult.success || !uploadResult.data?.url) {
+            throw new Error(uploadResult.error || 'Error al subir la imagen');
+          }
+
+          imageUrl = uploadResult.data.url;
+
+          const thumbResult = await uploadThumbnail(selectedFile, 'products');
+          thumbnailUrl = thumbResult.data?.url || '';
         }
-        
-        imageUrl = uploadResult.data.url;
-        
-        // Create thumbnail
-        const thumbResult = await uploadThumbnail(selectedFile, 'products');
-        thumbnailUrl = thumbResult.data?.url || '';
+
+        const nextOrder = products.reduce(
+          (maxOrder, product) => Math.max(maxOrder, Number(product.order) || 0),
+          -1
+        ) + 1;
+        const result = await addProduct({
+          ...data,
+          image: imageUrl,
+          thumbnail: thumbnailUrl,
+          order: nextOrder,
+        });
+
+        if (!result.success) {
+          throw new Error(result.error || 'Error al guardar el producto en Firestore');
+        }
+
+        return result;
+      } catch (error) {
+        await Promise.all([
+          imageUrl && deleteImage(imageUrl).catch(() => {}),
+          thumbnailUrl && deleteImage(thumbnailUrl).catch(() => {}),
+        ]);
+        throw error;
+      } finally {
         setIsUploading(false);
       }
-      
-      return addProduct({ 
-        ...data, 
-        image: imageUrl,
-        thumbnail: thumbnailUrl,
-        createdAt: new Date(),
-      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['admin', 'products']);
@@ -349,6 +367,15 @@ const ProductsManagementPage = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-red-800 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">
+        <h1 className="text-lg font-bold">No se pudieron cargar los productos</h1>
+        <p className="mt-1 text-sm">{error.message || 'Verifica la configuracion y los permisos de Firebase.'}</p>
       </div>
     );
   }
