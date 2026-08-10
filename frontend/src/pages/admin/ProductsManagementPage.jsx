@@ -70,7 +70,13 @@ const ProductsManagementPage = () => {
   // Fetch products - false para mostrar todos (activos e inactivos) en admin
   const { data: productsData, isLoading, error } = useQuery({
     queryKey: ['admin', 'products'],
-    queryFn: () => getProducts(false),
+    queryFn: async () => {
+      const result = await getProducts(false);
+      if (!result.success) {
+        throw new Error(result.error || 'Error al obtener productos');
+      }
+      return result;
+    },
   });
 
   const products = productsData?.data || [];
@@ -154,11 +160,15 @@ const ProductsManagementPage = () => {
           thumbnail: thumbnailUrl,
           order: nextOrder,
         });
-
+ 
         if (!result.success) {
           throw new Error(result.error || 'Error al guardar el producto en Firestore');
         }
-
+ 
+        if (!result.id) {
+          throw new Error('El producto no se creó correctamente');
+        }
+ 
         return result;
       } catch (error) {
         await Promise.all([
@@ -214,11 +224,10 @@ const ProductsManagementPage = () => {
         setIsUploading(false);
       }
       
-      return updateProduct(id, { 
-        ...data, 
+      return updateProduct(id, {
+        ...data,
         image: imageUrl,
         thumbnail: thumbnailUrl,
-        updatedAt: new Date(),
       });
     },
     onSuccess: () => {

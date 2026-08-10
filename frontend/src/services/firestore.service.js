@@ -163,12 +163,17 @@ export const getProducts = async (activeOnly = true) => {
   // El ordenamiento puede fallar si el campo no existe en todos los docs
   const result = await getCollection('products', []);
   
+  if (!result.success) {
+    throw new Error(result.error || 'Error al obtener productos');
+  }
+  
   // Filtrar en cliente si activeOnly
-  if (result.success && result.data) {
-    if (activeOnly) {
-      result.data = result.data.filter(product => product.active === true);
-    }
-    // Ordenar por createdAt en cliente (más reciente primero)
+  if (activeOnly && result.data) {
+    result.data = result.data.filter(product => product.active === true);
+  }
+  
+  // Ordenar por createdAt en cliente (más reciente primero)
+  if (result.data) {
     result.data.sort((a, b) => {
       const dateA = a.createdAt?.toDate?.() || a.createdAt || new Date(0);
       const dateB = b.createdAt?.toDate?.() || b.createdAt || new Date(0);
