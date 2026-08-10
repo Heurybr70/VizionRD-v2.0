@@ -70,3 +70,15 @@ jobs:
           local-dir: frontend/dist/
           dangerous-clean-slate: false
 
+      - name: Deploy to FTP Vizion
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+        with:
+          server: ${{ secrets.FTP_SERVER_VIZION }}
+          username: ${{ secrets.FTP_USERNAME_VIZION }}
+          password: ${{ secrets.FTP_PASSWORD_VIZION }}
+          protocol: ftps
+          port: 21
+          server-dir: /domains/vizionrd.com/public_html/
+          local-dir: frontend/dist/
+          dangerous-clean-slate: false
+
