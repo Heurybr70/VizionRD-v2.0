@@ -58,9 +58,10 @@ jobs:
           echo "Testing port 22 on primary FTP..."
           timeout 5 bash -c "cat < /dev/null > /dev/tcp/${{ secrets.FTP_SERVER }}/22" && echo "Port 22 OK" || echo "Port 22 blocked/unreachable"
           echo "Testing port 21 on Vizion FTP..."
-          timeout 5 bash -c "cat < /dev/null > /dev/tcp/${{ secrets.FTP_SERVER_VIZION }}/21" && echo "Port 21 OK" || echo "Port 21 blocked/unreachable"
+          vizion_server=${{ replace(replace(secrets.FTP_SERVER_VIZION, 'ftp://', ''), 'sftp://', '') }}
+          timeout 5 bash -c "cat < /dev/null > /dev/tcp/$vizion_server/21" && echo "Port 21 OK" || echo "Port 21 blocked/unreachable"
           echo "Testing port 22 on Vizion FTP..."
-          timeout 5 bash -c "cat < /dev/null > /dev/tcp/${{ secrets.FTP_SERVER_VIZION }}/22" && echo "Port 22 OK" || echo "Port 22 blocked/unreachable"
+          timeout 5 bash -c "cat < /dev/null > /dev/tcp/$vizion_server/22" && echo "Port 22 OK" || echo "Port 22 blocked/unreachable"
 
       - name: Deploy to FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.6
@@ -77,10 +78,10 @@ jobs:
       - name: Deploy to FTP Vizion
         uses: SamKirkland/FTP-Deploy-Action@v4.3.6
         with:
-          server: ${{ secrets.FTP_SERVER_VIZION }}
+          server: ${{ replace(replace(secrets.FTP_SERVER_VIZION, 'ftp://', ''), 'sftp://', '') }}
           username: ${{ secrets.FTP_USERNAME_VIZION }}
           password: ${{ secrets.FTP_PASSWORD_VIZION }}
-          protocol: ftps
+          protocol: ftp
           port: 21
           server-dir: /domains/vizionrd.com/public_html/
           local-dir: frontend/dist/
