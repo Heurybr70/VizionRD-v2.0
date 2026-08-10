@@ -94,7 +94,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD_VIZION }}
           protocol: ftp
           port: 21
-          server-dir: /domains/vizionrd.com/public_html/
+          server-dir: /public_html/
           local-dir: frontend/dist/
           dangerous-clean-slate: false
 
