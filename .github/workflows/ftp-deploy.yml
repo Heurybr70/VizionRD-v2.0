@@ -53,10 +53,14 @@ jobs:
       
       - name: Test FTP port connectivity
         run: |
-          echo "Testing port 21..."
+          echo "Testing port 21 on primary FTP..."
           timeout 5 bash -c "cat < /dev/null > /dev/tcp/${{ secrets.FTP_SERVER }}/21" && echo "Port 21 OK" || echo "Port 21 blocked/unreachable"
-          echo "Testing port 22..."
+          echo "Testing port 22 on primary FTP..."
           timeout 5 bash -c "cat < /dev/null > /dev/tcp/${{ secrets.FTP_SERVER }}/22" && echo "Port 22 OK" || echo "Port 22 blocked/unreachable"
+          echo "Testing port 21 on Vizion FTP..."
+          timeout 5 bash -c "cat < /dev/null > /dev/tcp/${{ secrets.FTP_SERVER_VIZION }}/21" && echo "Port 21 OK" || echo "Port 21 blocked/unreachable"
+          echo "Testing port 22 on Vizion FTP..."
+          timeout 5 bash -c "cat < /dev/null > /dev/tcp/${{ secrets.FTP_SERVER_VIZION }}/22" && echo "Port 22 OK" || echo "Port 22 blocked/unreachable"
 
       - name: Deploy to FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.6
