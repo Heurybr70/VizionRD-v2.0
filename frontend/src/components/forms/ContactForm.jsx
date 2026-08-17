@@ -27,7 +27,7 @@ const contactSchema = yup.object({
     .string()
     .required('El teléfono es requerido')
     .matches(
-      /^(\+?1)?[-.\s]?(\d{3})[-.\s]?(\d{3})[-.\s]?(\d{4})$/,
+      /^(?:\+?1[-.\s]?)?(?:\(\d{3}\)|\d{3})[-.\s]?\d{3}[-.\s]?\d{4}$/,
       'Ingresa un número de teléfono válido'
     ),
   subject: yup
@@ -184,6 +184,11 @@ const ContactForm = ({
     }
   };
 
+  const onInvalid = (validationErrors) => {
+    console.warn('Contact form validation failed:', Object.keys(validationErrors));
+    toast.error('Revisa los campos marcados antes de enviar el mensaje.');
+  };
+
   // Input classes
   const inputBaseClass = `
     w-full px-4 py-3 rounded-xl
@@ -200,7 +205,7 @@ const ContactForm = ({
   return (
     <form
       ref={formRef}
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={handleSubmit(onSubmit, onInvalid)}
       className={`space-y-6 ${variant === 'compact' ? 'space-y-4' : ''}`}
       noValidate
     >

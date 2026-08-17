@@ -258,9 +258,9 @@ export const isValidEmail = (email) => {
  * @returns {boolean} Is valid phone
  */
 export const isValidPhone = (phone) => {
-  // Accepts formats: 809-555-5555, 8095555555, +1809-555-5555
-  const phoneRegex = /^(\+?1)?[-.\s]?(\d{3})[-.\s]?(\d{3})[-.\s]?(\d{4})$/;
-  return phoneRegex.test(phone.replace(/\s/g, ''));
+  // Accepts formats: (849) 352-5315, 849-352-5315, 8493525315, +1 (849) 352-5315
+  const phoneRegex = /^(?:\+?1[-.\s]?)?(?:\(\d{3}\)|\d{3})[-.\s]?\d{3}[-.\s]?\d{4}$/;
+  return phoneRegex.test(phone.trim());
 };
 
 /**
