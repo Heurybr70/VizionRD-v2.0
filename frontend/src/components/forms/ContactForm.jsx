@@ -248,13 +248,14 @@ const ContactForm = ({
       className={`space-y-6 ${variant === 'compact' ? 'space-y-4' : ''}`}
       noValidate
     >
-      {/* Honeypot field (hidden) */}
+      {/* Honeypot: readOnly and new-password prevent browsers/password managers from autofilling it. */}
       <input
         type="text"
         {...register('honeypot')}
         className="absolute -left-[9999px] opacity-0 pointer-events-none"
         tabIndex={-1}
-        autoComplete="off"
+        autoComplete="new-password"
+        readOnly
         aria-hidden="true"
       />
 
