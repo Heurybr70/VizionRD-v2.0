@@ -151,13 +151,25 @@ export const sendContactEmail = async (formData) => {
       };
     }
 
-    // Prepare template parameters
+    const fromName = formData.name.trim();
+    const fromEmail = formData.email.trim().toLowerCase();
+    const fromPhone = formData.phone?.trim() || 'No proporcionado';
+    const subject = formData.subject?.trim() || 'Nuevo mensaje de contacto';
+    const message = formData.message.trim();
+
+    // Prepare template parameters for both the legacy Spanish template and the current template.
     const templateParams = {
-      from_name: formData.name.trim(),
-      from_email: formData.email.trim().toLowerCase(),
-      from_phone: formData.phone?.trim() || 'No proporcionado',
-      subject: formData.subject?.trim() || 'Nuevo mensaje de contacto',
-      message: formData.message.trim(),
+      from_name: fromName,
+      from_email: fromEmail,
+      from_phone: fromPhone,
+      subject,
+      message,
+      // Correo_Vizion (Vizion_RD) uses these Spanish variable names.
+      nombre: fromName,
+      email: fromEmail,
+      telefono: fromPhone,
+      sujeto: subject,
+      Message: message,
       product_interest: formData.productInterest || 'No especificado',
       sent_at: new Date().toLocaleString('es-DO', { 
         timeZone: 'America/Santo_Domingo',
@@ -165,7 +177,7 @@ export const sendContactEmail = async (formData) => {
         timeStyle: 'short'
       }),
       // For reply-to functionality
-      reply_to: formData.email.trim().toLowerCase(),
+      reply_to: fromEmail,
       // Force recipient to official inbox (ensure template supports dynamic recipient or uses {{to_email}})
       to_email: 'info@vizionrd.com'
     };
