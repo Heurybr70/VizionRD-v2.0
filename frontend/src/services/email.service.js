@@ -10,20 +10,39 @@ const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
 const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
 const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
+/**
+ * Check if Email service is configured and report missing env keys
+ * @returns {{configured: boolean, missing: string[]}}
+ */
+export const isEmailConfigured = () => {
+  const missing = [];
+  if (!SERVICE_ID) missing.push('VITE_EMAILJS_SERVICE_ID');
+  if (!TEMPLATE_ID) missing.push('VITE_EMAILJS_TEMPLATE_ID');
+  if (!PUBLIC_KEY) missing.push('VITE_EMAILJS_PUBLIC_KEY');
+  return { configured: missing.length === 0, missing };
+};
+
+
 // Rate limiting configuration
 const RATE_LIMIT_KEY = 'vizionrd_email_rate_limit';
 const MAX_EMAILS_PER_HOUR = 3;
 const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour in milliseconds
 
 /**
- * Initialize EmailJS with public key
+ * Initialize EmailJS with public key if configured
  */
 export const initEmailJS = () => {
-  if (PUBLIC_KEY) {
-    emailjs.init(PUBLIC_KEY);
-    return true;
+  const cfg = isEmailConfigured();
+  if (cfg.configured) {
+    try {
+      emailjs.init(PUBLIC_KEY);
+      return true;
+    } catch (err) {
+      console.error('Failed to init EmailJS:', err);
+      return false;
+    }
   }
-  console.warn('EmailJS public key not configured');
+  console.warn('EmailJS not configured:', cfg.missing);
   return false;
 };
 
@@ -102,11 +121,14 @@ const recordAttempt = () => {
 export const sendContactEmail = async (formData) => {
   try {
     // Validate configuration
-    if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY) {
-      console.error('EmailJS not configured properly');
+    const cfg = isEmailConfigured();
+    if (!cfg.configured) {
+      console.error('EmailJS not configured properly:', cfg.missing);
       return { 
         success: false, 
-        error: 'El servicio de email no está configurado correctamente' 
+        error: 'El servicio de email no está configurado correctamente',
+        code: 'NOT_CONFIGURED',
+        missing: cfg.missing
       };
     }
 
@@ -275,6 +297,7 @@ export default {
   initEmailJS,
   sendContactEmail,
   sendContactEmailWithCaptcha,
+  isEmailConfigured,
   isValidEmail,
   isValidPhone,
   formatPhone,

@@ -9,7 +9,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { motion, AnimatePresence } from 'framer-motion';
 import { addContactLead } from '../../services/firestore.service';
-import { sendContactEmail, getRateLimitInfo as getEmailRateLimit } from '../../services/email.service';
+import { sendContactEmail, getRateLimitInfo as getEmailRateLimit, initEmailJS, isEmailConfigured } from '../../services/email.service';
 import { toast } from 'react-hot-toast';
 
 // Validation schema
@@ -50,7 +50,20 @@ const ContactForm = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [charCount, setCharCount] = useState(0);
+  const [emailConfigured, setEmailConfigured] = useState(true);
   const formRef = useRef(null);
+
+  // Initialize EmailJS if available
+  useEffect(() => {
+    try {
+      const ok = initEmailJS();
+      setEmailConfigured(ok);
+    } catch (err) {
+      console.warn('Failed to initialize email service', err);
+      setEmailConfigured(false);
+    }
+  }, []);
+
 
   const {
     register,
@@ -113,25 +126,48 @@ const ContactForm = ({
         throw new Error(leadResult.error || 'Error al guardar el mensaje');
       }
 
-      // 2. Send email via EmailJS
-      const emailResult = await sendContactEmail({
-        ...data,
-        productInterest
-      });
+      // 2. Send email via EmailJS (if configured)
+      let emailResult = { success: false };
 
-      if (!emailResult.success && !emailResult.rateLimited) {
-        console.warn('Email send failed:', emailResult.error);
-        // Don't throw - we still saved the lead
+      if (isEmailConfigured().configured) {
+        emailResult = await sendContactEmail({
+          ...data,
+          productInterest
+        });
+
+        // Handle email result and show appropriate feedback
+        if (emailResult.success) {
+          // Email delivered
+          setSubmitSuccess(true);
+          reset();
+
+          toast.success('¡Mensaje enviado! Te contactaremos pronto.', {
+            duration: 5000,
+            icon: '✅'
+          });
+
+          // Reset success state after animation
+          setTimeout(() => setSubmitSuccess(false), 3000);
+
+        } else if (emailResult.rateLimited) {
+          // Rate limited by Email service
+          toast.error(emailResult.error || 'Has excedido el límite de envíos. Intenta más tarde.');
+        } else {
+          // Email failed but lead was saved — inform the user
+          console.warn('Email send failed:', emailResult.error || emailResult.details || 'Unknown');
+
+          reset();
+
+          toast.error('No se pudo enviar el correo, pero tu mensaje fue guardado. Te contactaremos por otros medios.', {
+            duration: 7000,
+            icon: '⚠️'
+          });
+        }
+      } else {
+        // Email service not configured
+        reset();
+        toast.error('El servicio de correo no está configurado. Tu mensaje fue guardado y será revisado por el equipo.', { duration: 8000, icon: '⚠️' });
       }
-
-      // Success!
-      setSubmitSuccess(true);
-      reset();
-      
-      toast.success('¡Mensaje enviado! Te contactaremos pronto.', {
-        duration: 5000,
-        icon: '✅'
-      });
 
       if (onSuccess) {
         onSuccess(leadResult.data);
