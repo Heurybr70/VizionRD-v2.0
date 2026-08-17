@@ -138,7 +138,7 @@ const ContactForm = ({
         phone: data.phone.trim(),
         subject: data.subject?.trim() || 'Consulta desde el sitio web',
         message: data.message.trim(),
-        productInterest: productInterest || null,
+        ...(productInterest ? { productInterest } : {}),
         source: 'website_contact_form',
         userAgent: navigator.userAgent,
         language: navigator.language
