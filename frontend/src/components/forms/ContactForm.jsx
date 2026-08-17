@@ -41,6 +41,23 @@ const contactSchema = yup.object({
   honeypot: yup.string().max(0) // Honeypot field should be empty
 });
 
+const formatPhoneInput = (value) => {
+  let digits = value.replace(/\D/g, '');
+
+  // El código +1 es opcional: el campo se muestra siempre en formato local.
+  if (digits.length === 11 && digits.startsWith('1')) {
+    digits = digits.slice(1);
+  }
+
+  digits = digits.slice(0, 10);
+
+  if (digits.length === 0) return '';
+  if (digits.length <= 3) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+};
+
 const ContactForm = ({ 
   productInterest = '', 
   subject = '',
@@ -82,6 +99,13 @@ const ContactForm = ({
       honeypot: ''
     }
   });
+
+  const phoneField = register('phone');
+
+  const handlePhoneChange = (event) => {
+    event.target.value = formatPhoneInput(event.target.value);
+    phoneField.onChange(event);
+  };
 
   // Watch message for character count
   const messageValue = watch('message', '');
@@ -185,8 +209,23 @@ const ContactForm = ({
   };
 
   const onInvalid = (validationErrors) => {
-    console.warn('Contact form validation failed:', Object.keys(validationErrors));
-    toast.error('Revisa los campos marcados antes de enviar el mensaje.');
+    const fieldNames = {
+      name: 'nombre completo',
+      email: 'correo electrónico',
+      phone: 'teléfono',
+      subject: 'asunto',
+      message: 'mensaje',
+      honeypot: 'verificación antispam'
+    };
+    const invalidFields = Object.keys(validationErrors).map(
+      (field) => fieldNames[field] || field
+    );
+
+    console.warn('Contact form validation failed:', {
+      fields: invalidFields,
+      errors: validationErrors
+    });
+    toast.error(`Revisa: ${invalidFields.join(', ')}.`);
   };
 
   // Input classes
@@ -285,8 +324,10 @@ const ContactForm = ({
           </label>
           <input
             type="tel"
-            {...register('phone')}
-            placeholder="(849) 352-5315"
+            {...phoneField}
+            onChange={handlePhoneChange}
+            inputMode="numeric"
+            placeholder="(829) 812-2612"
             className={`${inputBaseClass} ${errors.phone ? inputErrorClass : ''}`}
             disabled={isSubmitting}
           />
