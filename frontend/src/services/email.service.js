@@ -165,7 +165,9 @@ export const sendContactEmail = async (formData) => {
         timeStyle: 'short'
       }),
       // For reply-to functionality
-      reply_to: formData.email.trim().toLowerCase()
+      reply_to: formData.email.trim().toLowerCase(),
+      // Force recipient to official inbox (ensure template supports dynamic recipient or uses {{to_email}})
+      to_email: 'info@vizionrd.com'
     };
 
     // Send email via EmailJS

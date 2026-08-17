@@ -9,6 +9,15 @@ import App from './App'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import './index.css'
+import { initEmailJS } from './services/email.service';
+
+// Initialize EmailJS (no-op if not configured)
+try {
+  initEmailJS();
+} catch (err) {
+  // Init errors are non-fatal for app startup
+  console.warn('EmailJS init failed at startup:', err);
+}
 
 // Create React Query client
 const queryClient = new QueryClient({
